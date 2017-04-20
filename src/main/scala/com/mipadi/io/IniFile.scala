@@ -24,6 +24,8 @@ import com.mipadi.io.helpers._
 class IniFile private(_path: String, _sections: Map[String, IniSection]) {
   val path = _path
 
+  override def toString = s"IniFile(path = $path)"
+
   def apply(key: String): Option[IniSection] = _sections get key
 }
 
