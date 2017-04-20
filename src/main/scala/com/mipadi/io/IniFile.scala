@@ -20,7 +20,15 @@ import java.io.File
 
 
 class IniFile private(_path: String) {
+  type IniSection = Map[String,String]
+
   val path = _path
+
+  def apply(key: String): Option[IniSection] = key match {
+    // TODO: Actually parse file and build Map
+    case "database" => Some(Map())
+    case _          => None
+  }
 }
 
 object IniFile {
