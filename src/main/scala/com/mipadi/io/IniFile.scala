@@ -18,6 +18,7 @@ package com.mipadi.io
 
 import java.io.File
 import scala.io.Source
+import com.mipadi.io.helpers._
 
 
 class IniFile private(_path: String, _sections: Map[String, IniSection]) {
@@ -31,7 +32,7 @@ object IniFile {
 
   def apply(file: File): Option[IniFile] = if (file.exists) {
     val sections = Source.fromFile(file).getLines.foldLeft(Map[String,IniSection]()) { (memo, e) =>
-      if (e.startsWith("[")) {
+      if (e.isSectionName) {
         val k = e.replace("[", "").replace("]", "").replace(" \"", ".").replace("\"", "")
         val v = Map[String, String]()
         memo + (k -> v)
