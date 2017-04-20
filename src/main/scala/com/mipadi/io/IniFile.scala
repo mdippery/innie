@@ -33,9 +33,7 @@ object IniFile {
   def apply(file: File): Option[IniFile] = if (file.exists) {
     val sections = Source.fromFile(file).getLines.foldLeft(Map[String,IniSection]()) { (memo, e) =>
       if (e.isSectionName) {
-        val k = e.replace("[", "").replace("]", "").replace(" \"", ".").replace("\"", "")
-        val v = Map[String, String]()
-        memo + (k -> v)
+        memo + (e.cleanSectionName -> Map[String, String]())
       } else {
         memo
       }
