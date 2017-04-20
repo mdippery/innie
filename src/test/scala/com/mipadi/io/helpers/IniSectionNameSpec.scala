@@ -54,4 +54,24 @@ class IniSectionNameSpec extends FlatSpec with Matchers {
   it should "replace quotation marks in a quoted section name" in {
     "[section \"special\"]".cleanSectionName should be ("section.special")
   }
+
+  it should "split into a key/value pair" in {
+    "key = value".splitKeyAndValue should be (Some("key" -> "value"))
+  }
+
+  it should "split into a key/value pair if it is missing a leading space" in {
+    "key= value".splitKeyAndValue should be (Some("key" -> "value"))
+  }
+
+  it should "split into a key/value pair if it is missing a trailing space" in {
+    "key =value".splitKeyAndValue should be (Some("key" -> "value"))
+  }
+
+  it should "split into a key/value pair if it is missing both spaces" in {
+    "key=value".splitKeyAndValue should be (Some("key" -> "value"))
+  }
+
+  it should "not split if it is not a key/value pair" in {
+    "key value".splitKeyAndValue should be (None)
+  }
 }

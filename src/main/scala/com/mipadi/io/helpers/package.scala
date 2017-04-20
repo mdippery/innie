@@ -25,5 +25,13 @@ package object helpers {
                                     .replaceFirst("\\]$", "")
                                     .replace(" \"", ".")
                                     .replace("\"", "")
+
+    def splitKeyAndValue: Option[(String, String)] = {
+      val parts = s.split(" ?= ?")
+      parts.length match {
+        case 2 => Option(parts(0) -> parts(1))
+        case _ => None
+      }
+    }
   }
 }
