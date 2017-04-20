@@ -20,5 +20,10 @@ package com.mipadi.io
 package object helpers {
   implicit class IniSectionName(val s: String) {
     def isSectionName: Boolean = s.startsWith("[") && s.endsWith("]")
+
+    def cleanSectionName: String = s.replaceFirst("^\\[", "")
+                                    .replaceFirst("\\]$", "")
+                                    .replace(" \"", ".")
+                                    .replace("\"", "")
   }
 }

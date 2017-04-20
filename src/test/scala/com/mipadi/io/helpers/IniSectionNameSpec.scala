@@ -42,4 +42,16 @@ class IniSectionNameSpec extends FlatSpec with Matchers {
     "section]".isSectionName should be (false)
     "section[".isSectionName should be (false)
   }
+
+  it should "remove brackets from section names" in {
+    "[section]".cleanSectionName should be ("section")
+  }
+
+  it should "not remove brackets from inside a section name" in {
+    "sec[tio]n".cleanSectionName should be ("sec[tio]n")
+  }
+
+  it should "replace quotation marks in a quoted section name" in {
+    "[section \"special\"]".cleanSectionName should be ("section.special")
+  }
 }
