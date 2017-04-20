@@ -18,5 +18,5 @@ package com.mipadi
 
 
 package object io {
-  type IniSection = Map[String,Map[String,String]]
+  type IniSection = Map[String,String]
 }

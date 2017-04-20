@@ -17,23 +17,30 @@
 package com.mipadi.io
 
 import java.io.File
+import scala.io.Source
 
 
 class IniFile private(_path: String, _sections: Map[String, IniSection]) {
   val path = _path
 
-  def apply(key: String): Option[IniSection] = key match {
-    // TODO: Actually parse file and build Map
-    case "database" => Some(Map())
-    case "alias"    => Some(Map())
-    case _          => None
-  }
+  def apply(key: String): Option[IniSection] = _sections get key
 }
 
 object IniFile {
   def apply(path: String): Option[IniFile] = apply(new File(path))
 
-  def apply(file: File): Option[IniFile] =
-    if (file.exists) Option(new IniFile(file.getAbsolutePath, Map()))
-    else None
+  def apply(file: File): Option[IniFile] = if (file.exists) {
+    val sections = Source.fromFile(file).getLines.foldLeft(Map[String,IniSection]()) { (memo, e) =>
+      if (e.startsWith("[")) {
+        val k = e.replace("[", "").replace("]", "").replace(" \"", ".").replace("\"", "")
+        val v = Map[String, String]()
+        memo + (k -> v)
+      } else {
+        memo
+      }
+    }
+    Option(new IniFile(file.getAbsolutePath, sections))
+  } else {
+    None
+  }
 }

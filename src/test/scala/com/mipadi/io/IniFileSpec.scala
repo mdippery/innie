@@ -24,6 +24,9 @@ class IniFileSpec extends FlatSpec with Matchers {
   val iniFile = IniFile("src/test/resources/zanegort.ini")
   val complexFile = IniFile("src/test/resources/gitconfig.ini")
 
+  // Simple .ini files
+  // --------------------------------------------------------------------------
+
   "A simple .ini file" should "be created from a string path" in {
     val path = iniFile map { _.path } getOrElse ""
     iniFile should not be (None)
@@ -50,14 +53,20 @@ class IniFileSpec extends FlatSpec with Matchers {
   }
 
   it should "return a section if a given key is valid" in {
-    val section = iniFile map { _("database") } getOrElse None
-    section should not be (None)
+    val sections = Set("database", "irc")
+    sections.foreach { key =>
+      val section = iniFile map { _(key) } getOrElse None
+      section should not be (None)
+    }
   }
 
   it should "not return a section if a given key is invalid" in {
-    val section = iniFile map { _("nosection") } getOrElse None
+    val section = iniFile map { _("nickname") } getOrElse None
     section should be (None)
   }
+
+  // Complex .ini files
+  // --------------------------------------------------------------------------
 
   "A complex .ini file" should "be created from a string path" in {
     val path = complexFile map { _.path } getOrElse ""
@@ -74,12 +83,17 @@ class IniFileSpec extends FlatSpec with Matchers {
   }
 
   it should "return a section if a given key is valid" in {
-    val section = complexFile map { _("alias") } getOrElse None
-    section should not be (None)
+    val sections = Set("user", "core", "apply", "color", "diff", "diff.json",
+                       "instaweb", "interactive", "fetch", "pull", "push",
+                       "rebase", "rerere", "pager", "alias", "include")
+    sections.foreach { key =>
+      val section = complexFile map { _(key) } getOrElse None
+      section should not be (None)
+    }
   }
 
   it should "not return a section if a given key is invalid" in {
-    val section = iniFile map { _("nosection") } getOrElse None
+    val section = iniFile map { _("autostash") } getOrElse None
     section should be (None)
   }
 }
