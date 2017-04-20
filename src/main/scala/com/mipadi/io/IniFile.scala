@@ -27,6 +27,7 @@ class IniFile private(_path: String) {
   def apply(key: String): Option[IniSection] = key match {
     // TODO: Actually parse file and build Map
     case "database" => Some(Map())
+    case "alias"    => Some(Map())
     case _          => None
   }
 }

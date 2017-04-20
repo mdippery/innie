@@ -22,8 +22,9 @@ import org.scalatest._
 
 class IniFileSpec extends FlatSpec with Matchers {
   val iniFile = IniFile("src/test/resources/zanegort.ini")
+  val complexFile = IniFile("src/test/resources/gitconfig.ini")
 
-  "An IniFile" should "be created from a string path" in {
+  "A simple .ini file" should "be created from a string path" in {
     val path = iniFile map { _.path } getOrElse ""
     iniFile should not be (None)
     path.endsWith("src/test/resources/zanegort.ini") should be (true)
@@ -50,6 +51,30 @@ class IniFileSpec extends FlatSpec with Matchers {
 
   it should "return a section if a given key is valid" in {
     val section = iniFile map { _("database") } getOrElse None
+    section should not be (None)
+  }
+
+  it should "not return a section if a given key is invalid" in {
+    val section = iniFile map { _("nosection") } getOrElse None
+    section should be (None)
+  }
+
+  "A complex .ini file" should "be created from a string path" in {
+    val path = complexFile map { _.path } getOrElse ""
+    complexFile should not be (None)
+    path.endsWith("src/test/resources/gitconfig.ini") should be (true)
+  }
+
+  it should "be created from a File" in {
+    val f = new File("src/test/resources/gitconfig.ini")
+    val complexFile = IniFile(f)
+    val path = complexFile map { _.path } getOrElse ""
+    complexFile should not be (None)
+    path.endsWith("src/test/resources/gitconfig.ini") should be (true)
+  }
+
+  it should "return a section if a given key is valid" in {
+    val section = complexFile map { _("alias") } getOrElse None
     section should not be (None)
   }
 
