@@ -14,26 +14,9 @@
  * limitations under the License.
  */
 
-package com.mipadi.io
-
-import java.io.File
+package com.mipadi
 
 
-class IniFile private(_path: String, _sections: Map[String, IniSection]) {
-  val path = _path
-
-  def apply(key: String): Option[IniSection] = key match {
-    // TODO: Actually parse file and build Map
-    case "database" => Some(Map())
-    case "alias"    => Some(Map())
-    case _          => None
-  }
-}
-
-object IniFile {
-  def apply(path: String): Option[IniFile] = apply(new File(path))
-
-  def apply(file: File): Option[IniFile] =
-    if (file.exists) Option(new IniFile(file.getAbsolutePath, Map()))
-    else None
+package object io {
+  type IniSection = Map[String,Map[String,String]]
 }
