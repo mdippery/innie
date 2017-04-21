@@ -14,24 +14,9 @@
  * limitations under the License.
  */
 
-package com.mipadi.io
+package com.mipadi.lang
 
 
-package object helpers {
-  implicit class IniSectionName(val s: String) {
-    def isSectionName: Boolean = s.startsWith("[") && s.endsWith("]")
-
-    def cleanSectionName: String = s.replaceFirst("^\\[", "")
-                                    .replaceFirst("\\]$", "")
-                                    .replace(" \"", ".")
-                                    .replace("\"", "")
-
-    def splitKeyAndValue: Option[(String, String)] = {
-      val parts = s.split(" ?= ?")
-      parts.length match {
-        case 2 => Option(parts(0) -> parts(1))
-        case _ => None
-      }
-    }
-  }
+package object ini {
+  type IniSection = Map[String,String]
 }

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.mipadi.io
+package com.mipadi.lang.ini
 
 import java.io.File
 import scala.io.Source
-import com.mipadi.io.helpers._
+import com.mipadi.lang.ini.helpers._
 
 
 class IniFile private(_path: String, _sections: Map[String, IniSection]) {

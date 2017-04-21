@@ -14,10 +14,24 @@
  * limitations under the License.
  */
 
-package com.mipadi
+package com.mipadi.lang.ini
 
 
-package object io {
-  type IniFile = com.mipadi.lang.ini.IniFile
-  val IniFile = com.mipadi.lang.ini.IniFile
+package object helpers {
+  implicit class IniSectionName(val s: String) {
+    def isSectionName: Boolean = s.startsWith("[") && s.endsWith("]")
+
+    def cleanSectionName: String = s.replaceFirst("^\\[", "")
+                                    .replaceFirst("\\]$", "")
+                                    .replace(" \"", ".")
+                                    .replace("\"", "")
+
+    def splitKeyAndValue: Option[(String, String)] = {
+      val parts = s.split(" ?= ?")
+      parts.length match {
+        case 2 => Option(parts(0) -> parts(1))
+        case _ => None
+      }
+    }
+  }
 }

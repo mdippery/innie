@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.mipadi.io.helpers
+package com.mipadi.lang.ini.helpers
 
 import org.scalatest._
-import com.mipadi.io.helpers._
+import com.mipadi.lang.ini.helpers._
 
 
 class IniSectionNameSpec extends FlatSpec with Matchers {
