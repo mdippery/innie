@@ -37,7 +37,7 @@ case class SectionHeader(name: String) extends Ast
 case class KeyValuePair(key: String, value: String) extends Ast
 
 
-trait IniParseError
+trait IniParseError { def msg: String }
 case class LexerError(msg: String) extends IniParseError
 case class ParserError(msg: String) extends IniParseError
 
