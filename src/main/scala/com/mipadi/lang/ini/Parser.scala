@@ -31,7 +31,7 @@ case class STRING(s: String) extends Token
 
 
 sealed trait Ast
-case class Block(header: SectionHeader, settings: Seq[KeyValuePair]) extends Ast
+case class Section(header: SectionHeader, settings: Seq[KeyValuePair]) extends Ast
 case class SectionHeader(name: String) extends Ast
 case class KeyValuePair(key: String, value: String) extends Ast
 
@@ -83,12 +83,12 @@ class IniParser extends Parsers {
   private def string: Parser[STRING] =
     accept("string", { case str @ STRING(s) => str })
 
-  def document: Parser[List[Block]] =
-    rep(block) ^^ { case blocks => blocks }
+  def document: Parser[List[Section]] =
+    rep(section) ^^ { case blocks => blocks }
 
-  def block: Parser[Block] =
+  def section: Parser[Section] =
     (sectionHeader ~ rep(keyValuePair)) ^^ {
-      case h ~ pairs => Block(h, pairs)
+      case h ~ pairs => Section(h, pairs)
     }
 
   def sectionHeader: Parser[SectionHeader] =
