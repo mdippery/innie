@@ -83,6 +83,9 @@ class IniParser extends Parsers {
   private def string: Parser[STRING] =
     accept("string", { case str @ STRING(s) => str })
 
+  def document: Parser[List[Block]] =
+    rep(block) ^^ { case blocks => blocks }
+
   def block: Parser[Block] =
     (sectionHeader ~ rep(keyValuePair)) ^^ {
       case h ~ pairs => Block(h, pairs)
