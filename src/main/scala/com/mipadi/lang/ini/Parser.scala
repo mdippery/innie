@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+// With guidance from: <http://enear.github.io/2016/03/31/parser-combinators/>
+
 package com.mipadi.lang.ini
 
 import scala.util.parsing.combinator._
@@ -76,7 +78,7 @@ class IniTokenReader(tokens: Seq[Token]) extends Reader[Token] {
 }
 
 
-class IniParser extends Parsers {
+object IniParser extends Parsers {
   override type Elem = Token
 
   private def string: Parser[STRING] =
@@ -106,5 +108,15 @@ class IniParser extends Parsers {
       case NoSuccess(msg, next) => Left(ParserError(msg))
       case Success(res, next)   => Right(res)
     }
+  }
+}
+
+
+object IniProcessor {
+  def apply(code: String): Either[IniParseError, List[Section]] = {
+    for {
+      tokens <- IniLexer(code).right
+      ast <- IniParser(tokens).right
+    } yield ast
   }
 }
