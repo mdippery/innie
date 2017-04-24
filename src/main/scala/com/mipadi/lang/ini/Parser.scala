@@ -29,6 +29,13 @@ case class QUOTED(s: String) extends Token
 case class STRING(s: String) extends Token
 
 
+sealed trait Ast
+case class SectionHeader(name: String) extends Ast
+case class KeyValuePair(key: Key, value: Value) extends Ast
+case class Key(name: String) extends Ast
+case class Value(data: String) extends Ast
+
+
 trait IniParseError
 
 case class LexerError(msg: String) extends IniParseError
