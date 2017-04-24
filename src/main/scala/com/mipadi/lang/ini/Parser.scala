@@ -30,6 +30,11 @@ case class QUOTED(s: String) extends Token
 case class STRING(s: String) extends Token
 
 
+trait IniParseError
+
+case class LexerError(msg: String) extends IniParseError
+
+
 object IniLexer extends RegexParsers {
   override val whiteSpace = "[ \t\r\f]+".r
 
@@ -48,4 +53,14 @@ object IniLexer extends RegexParsers {
 
   def string: Parser[STRING] =
     ".+".r ^^ { str => STRING(str) }
+
+  def tokens: Parser[List[Token]] =
+    phrase(rep1(lbrace | rbrace | equals | newline | quoted | identifier | string)) ^^ { rawTokens =>
+      rawTokens
+    }
+
+  def apply(code: String): Either[LexerError, List[Token]] = parse(tokens, code) match {
+    case NoSuccess(msg, next) => Left(LexerError(msg))
+    case Success(res, next)   => Right(res)
+  }
 }
