@@ -83,12 +83,12 @@ class IniParser extends Parsers {
     accept("string", { case str @ STRING(s) => str })
 
   def sectionHeader: Parser[SectionHeader] =
-    (LBRACE ~ string ~ RBRACE ~ NEWLINE) ^^ {
+    (LBRACE ~ string ~ RBRACE ~ rep1(NEWLINE)) ^^ {
       case _ ~ STRING(s) ~ _ ~ _ => SectionHeader(s)
     }
 
   def keyValuePair: Parser[KeyValuePair] =
-    (string ~ EQUALS ~ string ~ NEWLINE) ^^ {
+    (string ~ EQUALS ~ string ~ rep1(NEWLINE)) ^^ {
       case STRING(k) ~ _ ~ STRING(v) ~ _ => KeyValuePair(k, v)
     }
 }
