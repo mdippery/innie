@@ -16,6 +16,8 @@
 
 package com.mipadi.lang.ini
 
+import scala.util.parsing.combinator._
+
 
 sealed trait Token
 
@@ -26,3 +28,24 @@ case object NEWLINE extends Token
 case class IDENTIFIER(s: String) extends Token
 case class QUOTED(s: String) extends Token
 case class STRING(s: String) extends Token
+
+
+object IniLexer extends RegexParsers {
+  override val whiteSpace = "[ \t\r\f]+".r
+
+  override def skipWhitespace = true
+
+  def lbrace  = "\\[".r ^^ { _ => LBRACE }
+  def rbrace  = "\\]".r ^^ { _ => RBRACE }
+  def equals  = "=".r   ^^ { _ => EQUALS }
+  def newline = "\\n".r ^^ { _ => NEWLINE }
+
+  def quoted: Parser[QUOTED] =
+    "\".+\"".r ^^ { str => QUOTED(str.replace("\"", "")) }
+
+  def identifier: Parser[IDENTIFIER] =
+    "[a-zA-Z]+".r ^^ { str => IDENTIFIER(str) }
+
+  def string: Parser[STRING] =
+    ".+".r ^^ { str => STRING(str) }
+}
