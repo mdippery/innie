@@ -38,14 +38,18 @@ object IniFile {
   def apply(path: String): Either[String, IniFile] = apply(new File(path))
 
   def apply(file: File): Either[String, IniFile] = if (file.exists) {
-    val sections = Source.fromFile(file).getLines.foldLeft(Map[String, IniSection]()) { (memo, e) =>
-      if (e.isSectionName) {
-        memo + (e.cleanSectionName -> new IniSection(Map[String, String]()))
-      } else {
-        memo
-      }
+    IniProcessor(Source.fromFile(file).mkString) match {
+      case Right(sections) =>
+        val sects = sections.foldLeft(Map[String, IniSection]()) { (memo, section) =>
+          val name = section.header.name
+          val data = new IniSection(Map[String, String]())
+          memo + (name -> data)
+        }
+        Right(new IniFile(file.getAbsolutePath, sects))
+
+      case Left(err) =>
+        Left(err.msg)
     }
-    Right(new IniFile(file.getAbsolutePath, sections))
   } else {
     Left(s"Cannot stat file: ${file.getPath}")
   }
