@@ -21,6 +21,11 @@ import scala.io.Source
 import com.mipadi.lang.ini.helpers._
 
 
+class IniSection private[ini](_settings: Map[String, String]) {
+  override def toString = s"IniSection(${_settings})"
+}
+
+
 class IniFile private(_path: String, _sections: Map[String, IniSection]) {
   val path = _path
 
@@ -33,9 +38,9 @@ object IniFile {
   def apply(path: String): Option[IniFile] = apply(new File(path))
 
   def apply(file: File): Option[IniFile] = if (file.exists) {
-    val sections = Source.fromFile(file).getLines.foldLeft(Map[String,IniSection]()) { (memo, e) =>
+    val sections = Source.fromFile(file).getLines.foldLeft(Map[String, IniSection]()) { (memo, e) =>
       if (e.isSectionName) {
-        memo + (e.cleanSectionName -> Map[String, String]())
+        memo + (e.cleanSectionName -> new IniSection(Map[String, String]()))
       } else {
         memo
       }
