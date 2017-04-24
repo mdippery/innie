@@ -25,7 +25,6 @@ case object LBRACE extends Token
 case object RBRACE extends Token
 case object EQUALS extends Token
 case object NEWLINE extends Token
-case class IDENTIFIER(s: String) extends Token
 case class QUOTED(s: String) extends Token
 case class STRING(s: String) extends Token
 
@@ -48,14 +47,11 @@ object IniLexer extends RegexParsers {
   def quoted: Parser[QUOTED] =
     "\".+\"".r ^^ { str => QUOTED(str.replace("\"", "")) }
 
-  def identifier: Parser[IDENTIFIER] =
-    "[a-zA-Z]+".r ^^ { str => IDENTIFIER(str) }
-
   def string: Parser[STRING] =
-    ".+".r ^^ { str => STRING(str) }
+    "[^\\[\\]\\n\\t\\r\\f =]+".r ^^ { str => STRING(str) }
 
   def tokens: Parser[List[Token]] =
-    phrase(rep1(lbrace | rbrace | equals | newline | quoted | identifier | string)) ^^ { rawTokens =>
+    phrase(rep1(lbrace | rbrace | equals | newline | quoted | string)) ^^ { rawTokens =>
       rawTokens
     }
 
