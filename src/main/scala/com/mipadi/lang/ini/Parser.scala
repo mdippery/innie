@@ -21,7 +21,6 @@ import scala.util.parsing.input.{NoPosition, Position, Reader}
 
 
 sealed trait Token
-
 case object LBRACE extends Token
 case object RBRACE extends Token
 case object EQUALS extends Token
@@ -37,8 +36,8 @@ case class KeyValuePair(key: String, value: String) extends Ast
 
 
 trait IniParseError
-
 case class LexerError(msg: String) extends IniParseError
+case class ParserError(msg: String) extends IniParseError
 
 
 object IniLexer extends RegexParsers {
@@ -100,4 +99,12 @@ class IniParser extends Parsers {
     (string ~ EQUALS ~ string ~ rep1(NEWLINE)) ^^ {
       case STRING(k) ~ _ ~ STRING(v) ~ _ => KeyValuePair(k, v)
     }
+
+  def apply(tokens: Seq[Token]): Either[ParserError, List[Section]] = {
+    val reader = new IniTokenReader(tokens)
+    document(reader) match {
+      case NoSuccess(msg, next) => Left(ParserError(msg))
+      case Success(res, next)   => Right(res)
+    }
+  }
 }
