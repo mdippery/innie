@@ -28,72 +28,114 @@ class IniFileSpec extends FlatSpec with Matchers {
   // --------------------------------------------------------------------------
 
   "A simple .ini file" should "be created from a string path" in {
-    val path = iniFile map { _.path } getOrElse ""
-    iniFile should not be (None)
-    path.endsWith("src/test/resources/zanegort.ini") should be (true)
+    val iniFile = IniFile("src/test/resources/zanegort.ini")
+    iniFile match {
+      case Right(f) => f.path.endsWith("src/test/resources/zanegort.ini") should be (true)
+      case x        => fail(s"Not a Right: $x")
+    }
   }
 
   it should "be created from a File" in {
     val f = new File("src/test/resources/zanegort.ini")
     val iniFile = IniFile(f)
-    val path = iniFile map { _.path } getOrElse ""
-    iniFile should not be (None)
-    path.endsWith("src/test/resources/zanegort.ini") should be (true)
+    iniFile match {
+      case Right(f) => f.path.endsWith("src/test/resources/zanegort.ini") should be (true)
+      case x        => fail(s"Not a Right: $x")
+    }
   }
 
   it should "not be created from an invalid string path" in {
-    val iniFile = IniFile("src/test/resources/nofile.ini")
-    iniFile should be (None)
+    val f = "src/test/resources/nofile.ini"
+    val iniFile = IniFile(f)
+    iniFile match {
+      case Left(msg) =>
+        msg should be (s"Cannot stat file: $f")
+      case x =>
+        fail(s"Not a Left: $x")
+    }
   }
 
   it should "not be created from an invalid File" in {
-    val f = new File("src/test/resources/nofile.ini")
+    val fn = "src/test/resources/nofile.ini"
+    val f = new File(fn)
     val iniFile = IniFile(f)
-    iniFile should be (None)
+    iniFile match {
+      case Left(msg) =>
+        msg should be (s"Cannot stat file: $fn")
+      case x =>
+        fail(s"Not a Left: $x")
+    }
   }
 
   it should "return a section if a given key is valid" in {
     val sections = Set("database", "irc")
-    sections.foreach { key =>
-      val section = iniFile map { _(key) } getOrElse None
-      section should not be (None)
+    iniFile match {
+      case Right(f) =>
+        sections.foreach { key =>
+          val section = f(key)
+          section should not be (None)
+        }
+
+      case x =>
+        fail(s"Not a Right: $x")
     }
   }
 
   it should "not return a section if a given key is invalid" in {
-    val section = iniFile map { _("nickname") } getOrElse None
-    section should be (None)
+    iniFile match {
+      case Right(f) =>
+        val section = f("nickname")
+        section should be (None)
+
+      case x =>
+        fail(s"Not a Right: $x")
+    }
   }
 
   // Complex .ini files
   // --------------------------------------------------------------------------
 
   "A complex .ini file" should "be created from a string path" in {
-    val path = complexFile map { _.path } getOrElse ""
-    complexFile should not be (None)
-    path.endsWith("src/test/resources/gitconfig.ini") should be (true)
+    val complexFile = IniFile("src/test/resources/gitconfig.ini")
+    complexFile match {
+      case Right(f) => f.path.endsWith("src/test/resources/gitconfig.ini") should be (true)
+      case x        => fail(s"Not a Right: $x")
+    }
   }
 
   it should "be created from a File" in {
     val f = new File("src/test/resources/gitconfig.ini")
     val complexFile = IniFile(f)
-    val path = complexFile map { _.path } getOrElse ""
-    complexFile should not be (None)
-    path.endsWith("src/test/resources/gitconfig.ini") should be (true)
+    complexFile match {
+      case Right(f) => f.path.endsWith("src/test/resources/gitconfig.ini") should be (true)
+      case x        => fail(s"Not a Right: $x")
+    }
   }
 
   it should "return a section if a given key is valid" in {
     val sections = Set("user", "core", "apply", "color", "diff", "diff.json",
                        "instaweb", "interactive", "fetch", "pull", "push",
                        "rebase", "rerere", "pager", "alias", "include")
-    sections.foreach { key =>
-      val section = complexFile map { _(key) } getOrElse None
-      section should not be (None)
+    complexFile match {
+      case Right(f) =>
+        sections.foreach { key =>
+          val section = f(key)
+          section should not be (None)
+        }
+
+      case x =>
+        fail(s"Not a Right: $x")
     }
   }
 
   it should "not return a section if a given key is invalid" in {
-    val section = iniFile map { _("autostash") } getOrElse None
-    section should be (None)
+    complexFile match {
+      case Right(f) =>
+        val section = f("autostash")
+        section should be (None)
+
+      case x =>
+        fail(s"Not a Right: $x")
+    }
   }
 }

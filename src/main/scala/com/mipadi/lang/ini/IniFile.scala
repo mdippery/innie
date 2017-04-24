@@ -35,9 +35,9 @@ class IniFile private(_path: String, _sections: Map[String, IniSection]) {
 }
 
 object IniFile {
-  def apply(path: String): Option[IniFile] = apply(new File(path))
+  def apply(path: String): Either[String, IniFile] = apply(new File(path))
 
-  def apply(file: File): Option[IniFile] = if (file.exists) {
+  def apply(file: File): Either[String, IniFile] = if (file.exists) {
     val sections = Source.fromFile(file).getLines.foldLeft(Map[String, IniSection]()) { (memo, e) =>
       if (e.isSectionName) {
         memo + (e.cleanSectionName -> new IniSection(Map[String, String]()))
@@ -45,8 +45,8 @@ object IniFile {
         memo
       }
     }
-    Option(new IniFile(file.getAbsolutePath, sections))
+    Right(new IniFile(file.getAbsolutePath, sections))
   } else {
-    None
+    Left(s"Cannot stat file: ${file.getPath}")
   }
 }
