@@ -85,7 +85,7 @@ object IniParser extends Parsers {
     accept("string", { case str @ STRING(s) => str })
 
   def document: Parser[List[Section]] =
-    rep(section) ^^ { case blocks => blocks }
+    rep1(section) ^^ { case blocks => blocks }
 
   def section: Parser[Section] =
     (sectionHeader ~ rep(keyValuePair)) ^^ {
