@@ -31,9 +31,7 @@ case class STRING(s: String) extends Token
 
 sealed trait Ast
 case class SectionHeader(name: String) extends Ast
-case class KeyValuePair(key: Key, value: Value) extends Ast
-case class Key(name: String) extends Ast
-case class Value(data: String) extends Ast
+case class KeyValuePair(key: String, value: String) extends Ast
 
 
 trait IniParseError
@@ -66,4 +64,22 @@ object IniLexer extends RegexParsers {
     case NoSuccess(msg, next) => Left(LexerError(msg))
     case Success(res, next)   => Right(res)
   }
+}
+
+
+class IniParser extends Parsers {
+  override type Elem = Token
+
+  private def string: Parser[STRING] =
+    accept("string", { case str @ STRING(s) => str })
+
+  def sectionHeader: Parser[SectionHeader] =
+    (LBRACE ~ string ~ RBRACE ~ NEWLINE) ^^ {
+      case _ ~ STRING(s) ~ _ ~ _ => SectionHeader(s)
+    }
+
+  def keyValuePair: Parser[KeyValuePair] =
+    (string ~ EQUALS ~ string ~ NEWLINE) ^^ {
+      case STRING(k) ~ _ ~ STRING(v) ~ _ => KeyValuePair(k, v)
+    }
 }
