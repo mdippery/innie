@@ -65,7 +65,7 @@ class IniFileSpec extends FlatSpec with Matchers {
     val file = iniFile.right.get
     sections.foreach { key =>
       val section = file(key)
-      section should not be (None)
+      section shouldBe a [Some[_]]
     }
   }
 
@@ -116,7 +116,7 @@ class IniFileSpec extends FlatSpec with Matchers {
   "A quoted .ini file" should "return a quoted section if the key is valid" in {
     val file = quotedFile.right.get
     val section = file("section.quoted")
-    section should not be (None)
+    section shouldBe a [Some[_]]
   }
 
   // Complex .ini files
