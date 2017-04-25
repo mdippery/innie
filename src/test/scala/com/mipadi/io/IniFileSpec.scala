@@ -92,6 +92,11 @@ class IniFileSpec extends FlatSpec with Matchers {
     value should be ("<None>")
   }
 
+  it should "not return a value for a given key if the section does not exist" in {
+    val value = iniFile.right.get("nosection")("name") getOrElse "<None>"
+    value should be ("<None>")
+  }
+
   // Quoted .ini files
   // --------------------------------------------------------------------------
 
@@ -145,16 +150,15 @@ class IniFileSpec extends FlatSpec with Matchers {
         fail(s"Not a Right: $x")
     }
   }
-
-  it should "not return a section if a given key is invalid" in {
-    complexFile match {
-      case Right(f) =>
-        val section = f("autostash")
-        section should be (None)
-
-      case x =>
-        fail(s"Not a Right: $x")
-    }
-  }
   */
+
+  it should "not return a value if a key in an existing section does not exist" in {
+    val value = complexFile.right.get("color")("pull") getOrElse "<None>"
+    value should be ("<None>")
+  }
+
+  it should "not return a value if a given section does not exist" in {
+    val value = complexFile.right.get("autostash")("rebase") getOrElse "<None>"
+    value should be ("<None>")
+  }
 }
