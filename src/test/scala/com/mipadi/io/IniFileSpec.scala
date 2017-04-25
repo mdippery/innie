@@ -152,7 +152,7 @@ class IniFileSpec extends FlatSpec with Matchers {
   }
   */
 
-  it should "not return a value if a key in an existing section does not exist" in {
+  it should "not return a value if a key in a section does not exist" in {
     val value = complexFile.right.get("color")("pull") getOrElse "<None>"
     value should be ("<None>")
   }
