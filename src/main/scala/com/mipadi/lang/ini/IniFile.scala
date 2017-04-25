@@ -22,10 +22,12 @@ import scala.io.Source
 
 class IniSection private[ini](_settings: Map[String, String]) {
   override def toString = s"IniSection(${_settings})"
+
+  def apply(key: String): Option[String] = _settings get key
 }
 
 object IniSection {
-  def apply(ast: Section) = new IniSection(ast.settings.foldLeft(Map[String, String]()) { (memo, kv) =>
+  def apply(ast: Section): IniSection = new IniSection(ast.settings.foldLeft(Map[String, String]()) { (memo, kv) =>
     memo + (kv.key -> kv.value)
   })
 }

@@ -18,6 +18,7 @@ package com.mipadi.io
 
 import java.io.File
 import org.scalatest._
+import com.mipadi.lang.ini.IniSection
 
 
 class IniFileSpec extends FlatSpec with Matchers {
@@ -72,6 +73,41 @@ class IniFileSpec extends FlatSpec with Matchers {
     val file = iniFile.right.get
     val section = file("nickname")
     section should be (None)
+  }
+
+  it should "return a value for a given key if the key exists" in {
+    val options = Map(
+      "database" -> Map(
+        "name" -> "zanegort",
+        "collection" -> "services"
+      ),
+      "irc" -> Map(
+        "network" -> "freenode",
+        "host" -> "chat.freenode.net",
+        "port" -> "6667",
+        "nickname" -> "zanegort",
+        "channel" -> "#/r/webdev"
+      )
+    )
+    options.foreach { (kv) =>
+      val sectionName = kv._1
+      val config = kv._2
+      val section = iniFile.right.get(sectionName)
+      section shouldBe a [Some[_]]
+      config.foreach { (kv) =>
+        val option = kv._1
+        val value = kv._2
+        val actualValue = section flatMap { _(option) } getOrElse "<None>"
+        actualValue should be (value)
+      }
+    }
+  }
+
+  it should "not return a value for a given key if the key does not exist" in {
+    val section = iniFile.right.get("database")
+    section shouldBe a [Some[_]]
+    val value = section flatMap { _("table") } getOrElse "<None>"
+    value should be ("<None>")
   }
 
   // Quoted .ini files
