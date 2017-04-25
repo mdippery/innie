@@ -24,6 +24,12 @@ class IniSection private[ini](_settings: Map[String, String]) {
   override def toString = s"IniSection(${_settings})"
 }
 
+object IniSection {
+  def apply(ast: Section) = new IniSection(ast.settings.foldLeft(Map[String, String]()) { (memo, kv) =>
+    memo + (kv.key -> kv.value)
+  })
+}
+
 
 class IniFile private(_path: String, _sections: Map[String, IniSection]) {
   val path = _path
@@ -41,7 +47,7 @@ object IniFile {
       case Right(sections) =>
         val sects = sections.foldLeft(Map[String, IniSection]()) { (memo, section) =>
           val name = section.header.name
-          val data = new IniSection(Map[String, String]())
+          val data = IniSection(section)
           memo + (name -> data)
         }
         Right(new IniFile(file.getAbsolutePath, sects))
