@@ -20,16 +20,28 @@ import java.io.File
 import scala.io.Source
 
 
-class IniSection private[ini](_settings: Map[String, String]) {
-  override def toString = s"IniSection(${_settings})"
+trait IniSection {
+  def apply(key: String): Option[String]
+}
+
+private[ini] object IniSection {
+  def apply(ast: Section): IniSection = new ConcreteIniSection(ast.settings.foldLeft(Map[String, String]()) { (memo, kv) =>
+    memo + (kv.key -> kv.value)
+  })
+}
+
+
+private[ini] class ConcreteIniSection(_settings: Map[String, String]) extends IniSection {
+  override def toString = s"ConcreteIniSection(${_settings})"
 
   def apply(key: String): Option[String] = _settings get key
 }
 
-object IniSection {
-  def apply(ast: Section): IniSection = new IniSection(ast.settings.foldLeft(Map[String, String]()) { (memo, kv) =>
-    memo + (kv.key -> kv.value)
-  })
+
+private[ini] class ProxyIniSection extends IniSection {
+  override def toString = "ProxyIniSection"
+
+  def apply(key: String): Option[String] = None
 }
 
 
@@ -38,7 +50,8 @@ class IniFile private(_path: String, _sections: Map[String, IniSection]) {
 
   override def toString = s"IniFile(path = $path)"
 
-  def apply(key: String): Option[IniSection] = _sections get key
+  def apply(key: String): IniSection =
+    _sections get key getOrElse new ProxyIniSection()
 }
 
 object IniFile {

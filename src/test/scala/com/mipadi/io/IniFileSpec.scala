@@ -60,21 +60,6 @@ class IniFileSpec extends FlatSpec with Matchers {
     msg should be (s"Cannot stat file: $fn")
   }
 
-  it should "return a section if a given key is valid" in {
-    val sections = Set("database", "irc")
-    val file = iniFile.right.get
-    sections.foreach { key =>
-      val section = file(key)
-      section shouldBe a [Some[_]]
-    }
-  }
-
-  it should "not return a section if a given key is invalid" in {
-    val file = iniFile.right.get
-    val section = file("nickname")
-    section should be (None)
-  }
-
   it should "return a value for a given key if the key exists" in {
     val options = Map(
       "database" -> Map(
@@ -93,30 +78,39 @@ class IniFileSpec extends FlatSpec with Matchers {
       val sectionName = kv._1
       val config = kv._2
       val section = iniFile.right.get(sectionName)
-      section shouldBe a [Some[_]]
       config.foreach { (kv) =>
         val option = kv._1
         val value = kv._2
-        val actualValue = section flatMap { _(option) } getOrElse "<None>"
+        val actualValue = section(option) getOrElse "<None>"
         actualValue should be (value)
       }
     }
   }
 
   it should "not return a value for a given key if the key does not exist" in {
-    val section = iniFile.right.get("database")
-    section shouldBe a [Some[_]]
-    val value = section flatMap { _("table") } getOrElse "<None>"
+    val value = iniFile.right.get("database")("table") getOrElse "<None>"
     value should be ("<None>")
   }
 
   // Quoted .ini files
   // --------------------------------------------------------------------------
 
-  "A quoted .ini file" should "return a quoted section if the key is valid" in {
+  "A quoted .ini file" should "return a value from a quoted section if the key is valid" in {
     val file = quotedFile.right.get
-    val section = file("section.quoted")
-    section shouldBe a [Some[_]]
+    val value = file("section.quoted")("key") getOrElse "<None>"
+    value should be ("value")
+  }
+
+  it should "not return a quoted section if the section does not exist" in {
+    val file = quotedFile.right.get
+    val value = file("other.section")("key") getOrElse "<None>"
+    value should be ("<None>")
+  }
+
+  it should "not return a value in a quote section if the key does not exist" in {
+    val file = quotedFile.right.get
+    val value = file("section.quoted")("otherkey") getOrElse "<None>"
+    value should be ("<None>")
   }
 
   // Complex .ini files
