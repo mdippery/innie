@@ -22,6 +22,7 @@ import org.scalatest._
 
 class IniFileSpec extends FlatSpec with Matchers {
   val iniFile = IniFile("src/test/resources/zanegort.ini")
+  val quotedFile = IniFile("src/test/resources/quoted.ini")
   val complexFile = IniFile("src/test/resources/gitconfig.ini")
 
   // Simple .ini files
@@ -86,6 +87,20 @@ class IniFileSpec extends FlatSpec with Matchers {
       case Right(f) =>
         val section = f("nickname")
         section should be (None)
+
+      case x =>
+        fail(s"Not a Right: $x")
+    }
+  }
+
+  // Quoted .ini files
+  // --------------------------------------------------------------------------
+
+  "A quoted .ini file" should "return a quoted section if the key is valid" in {
+    quotedFile match {
+      case Right(f) =>
+        val section = f("section.quoted")
+        section should not be (None)
 
       case x =>
         fail(s"Not a Right: $x")

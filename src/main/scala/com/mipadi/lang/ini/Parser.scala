@@ -84,6 +84,9 @@ object IniParser extends Parsers {
   private def string: Parser[STRING] =
     accept("string", { case str @ STRING(s) => str })
 
+  private def quoted: Parser[QUOTED] =
+    accept("string", { case str @ QUOTED(s) => str })
+
   def document: Parser[List[Section]] =
     rep1(section) ^^ { case blocks => blocks }
 
@@ -93,8 +96,9 @@ object IniParser extends Parsers {
     }
 
   def sectionHeader: Parser[SectionHeader] =
-    (LBRACE ~ string ~ RBRACE ~ rep1(NEWLINE)) ^^ {
-      case _ ~ STRING(s) ~ _ ~ _ => SectionHeader(s)
+    (LBRACE ~ string ~ opt(quoted) ~ RBRACE ~ rep1(NEWLINE)) ^^ {
+      case _ ~ STRING(s1) ~ Some(QUOTED(s2)) ~ _ ~ _ => SectionHeader(s"$s1.$s2")
+      case _ ~ STRING(s) ~ None ~ _ ~ _              => SectionHeader(s)
     }
 
   def keyValuePair: Parser[KeyValuePair] =
