@@ -22,27 +22,27 @@ import scala.util.parsing.combinator._
 import scala.util.parsing.input.{NoPosition, Position, Reader}
 
 
-sealed trait Token
-case object LBRACE extends Token
-case object RBRACE extends Token
-case object EQUALS extends Token
-case object NEWLINE extends Token
-case class QUOTED(s: String) extends Token
-case class STRING(s: String) extends Token
+private[ini] sealed trait Token
+private[ini] case object LBRACE extends Token
+private[ini] case object RBRACE extends Token
+private[ini] case object EQUALS extends Token
+private[ini] case object NEWLINE extends Token
+private[ini] case class QUOTED(s: String) extends Token
+private[ini] case class STRING(s: String) extends Token
 
 
-sealed trait Ast
-case class Section(header: SectionHeader, settings: Seq[KeyValuePair]) extends Ast
-case class SectionHeader(name: String) extends Ast
-case class KeyValuePair(key: String, value: String) extends Ast
+private[ini] sealed trait Ast
+private[ini] case class Section(header: SectionHeader, settings: Seq[KeyValuePair]) extends Ast
+private[ini] case class SectionHeader(name: String) extends Ast
+private[ini] case class KeyValuePair(key: String, value: String) extends Ast
 
 
-trait IniParseError { def msg: String }
-case class LexerError(msg: String) extends IniParseError
-case class ParserError(msg: String) extends IniParseError
+private[ini] trait IniParseError { def msg: String }
+private[ini] case class LexerError(msg: String) extends IniParseError
+private[ini] case class ParserError(msg: String) extends IniParseError
 
 
-object IniLexer extends RegexParsers {
+private[ini] object IniLexer extends RegexParsers {
   override val whiteSpace = "[ \t\r\f]+".r
 
   override def skipWhitespace = true
@@ -70,7 +70,7 @@ object IniLexer extends RegexParsers {
 }
 
 
-class IniTokenReader(tokens: Seq[Token]) extends Reader[Token] {
+private[ini] class IniTokenReader(tokens: Seq[Token]) extends Reader[Token] {
   override def first: Token = tokens.head
   override def atEnd: Boolean = tokens.isEmpty
   override def pos: Position = NoPosition
@@ -78,7 +78,7 @@ class IniTokenReader(tokens: Seq[Token]) extends Reader[Token] {
 }
 
 
-object IniParser extends Parsers {
+private[ini] object IniParser extends Parsers {
   override type Elem = Token
 
   private def string: Parser[STRING] =
@@ -116,7 +116,7 @@ object IniParser extends Parsers {
 }
 
 
-object IniProcessor {
+private[ini] object IniProcessor {
   def apply(code: String): Either[IniParseError, List[Section]] = {
     for {
       tokens <- IniLexer(code).right
