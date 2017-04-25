@@ -29,82 +29,58 @@ class IniFileSpec extends FlatSpec with Matchers {
   // --------------------------------------------------------------------------
 
   "A simple .ini file" should "be created from a string path" in {
-    val iniFile = IniFile("src/test/resources/zanegort.ini")
-    iniFile match {
-      case Right(f) => f.path.endsWith("src/test/resources/zanegort.ini") should be (true)
-      case x        => fail(s"Not a Right: $x")
-    }
+    val path = iniFile map { _.path } getOrElse "<Left>"
+    iniFile shouldBe a [Right[_, IniFile]]
+    path.endsWith("src/test/resources/zanegort.ini") should be (true)
   }
 
   it should "be created from a File" in {
     val f = new File("src/test/resources/zanegort.ini")
     val iniFile = IniFile(f)
-    iniFile match {
-      case Right(f) => f.path.endsWith("src/test/resources/zanegort.ini") should be (true)
-      case x        => fail(s"Not a Right: $x")
-    }
+    val path = iniFile map { _.path } getOrElse "<Left>"
+    iniFile shouldBe a [Right[_, IniFile]]
+    path.endsWith("src/test/resources/zanegort.ini") should be (true)
   }
 
   it should "not be created from an invalid string path" in {
     val f = "src/test/resources/nofile.ini"
     val iniFile = IniFile(f)
-    iniFile match {
-      case Left(msg) =>
-        msg should be (s"Cannot stat file: $f")
-      case x =>
-        fail(s"Not a Left: $x")
-    }
+    val msg = iniFile.left getOrElse "<Right>"
+    iniFile shouldBe a [Left[String, _]]
+    msg should be (s"Cannot stat file: $f")
   }
 
   it should "not be created from an invalid File" in {
     val fn = "src/test/resources/nofile.ini"
     val f = new File(fn)
     val iniFile = IniFile(f)
-    iniFile match {
-      case Left(msg) =>
-        msg should be (s"Cannot stat file: $fn")
-      case x =>
-        fail(s"Not a Left: $x")
-    }
+    val msg = iniFile.left getOrElse "<Right>"
+    iniFile shouldBe a [Left[String, _]]
+    msg should be (s"Cannot stat file: $fn")
   }
 
   it should "return a section if a given key is valid" in {
     val sections = Set("database", "irc")
-    iniFile match {
-      case Right(f) =>
-        sections.foreach { key =>
-          val section = f(key)
-          section should not be (None)
-        }
-
-      case x =>
-        fail(s"Not a Right: $x")
+    val file = iniFile.right.get
+    sections.foreach { key =>
+      val section = file(key)
+      section should not be (None)
     }
   }
 
   it should "not return a section if a given key is invalid" in {
-    iniFile match {
-      case Right(f) =>
-        val section = f("nickname")
-        section should be (None)
-
-      case x =>
-        fail(s"Not a Right: $x")
-    }
+    val file = iniFile.right.get
+    val section = file("nickname")
+    section should be (None)
   }
 
   // Quoted .ini files
   // --------------------------------------------------------------------------
 
   "A quoted .ini file" should "return a quoted section if the key is valid" in {
-    quotedFile match {
-      case Right(f) =>
-        val section = f("section.quoted")
-        section should not be (None)
-
-      case x =>
-        fail(s"Not a Right: $x")
-    }
+    val file = quotedFile.right.get
+    val section = file("section.quoted")
+    section should not be (None)
   }
 
   // Complex .ini files
@@ -112,19 +88,15 @@ class IniFileSpec extends FlatSpec with Matchers {
 
   "A complex .ini file" should "be created from a string path" in {
     val complexFile = IniFile("src/test/resources/gitconfig.ini")
-    complexFile match {
-      case Right(f) => f.path.endsWith("src/test/resources/gitconfig.ini") should be (true)
-      case x        => fail(s"Not a Right: $x")
-    }
+    val path = complexFile map { _.path } getOrElse "<Left>"
+    path.endsWith("src/test/resources/gitconfig.ini") should be (true)
   }
 
   it should "be created from a File" in {
     val f = new File("src/test/resources/gitconfig.ini")
     val complexFile = IniFile(f)
-    complexFile match {
-      case Right(f) => f.path.endsWith("src/test/resources/gitconfig.ini") should be (true)
-      case x        => fail(s"Not a Right: $x")
-    }
+    val path = complexFile map { _.path } getOrElse "<Left>"
+    path.endsWith("src/test/resources/gitconfig.ini") should be (true)
   }
 
   /*
