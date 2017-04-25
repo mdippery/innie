@@ -18,7 +18,6 @@ package com.mipadi.lang.ini
 
 import java.io.File
 import scala.io.Source
-import com.mipadi.lang.ini.helpers._
 
 
 class IniSection private[ini](_settings: Map[String, String]) {
