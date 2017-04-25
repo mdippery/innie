@@ -85,7 +85,7 @@ private[ini] object IniParser extends Parsers {
     accept("string", { case str @ STRING(s) => str })
 
   private def quoted: Parser[QUOTED] =
-    accept("string", { case str @ QUOTED(s) => str })
+    accept("quoted", { case str @ QUOTED(s) => str })
 
   def document: Parser[List[Section]] =
     rep1(section) ^^ { case blocks => blocks }
