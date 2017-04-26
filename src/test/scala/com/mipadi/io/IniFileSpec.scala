@@ -25,6 +25,9 @@ class IniFileSpec extends FlatSpec with Matchers {
   val iniFile = IniFile("src/test/resources/zanegort.ini")
   val quotedFile = IniFile("src/test/resources/quoted.ini")
   val complexFile = IniFile("src/test/resources/gitconfig.ini")
+  val invalidFile = IniFile("src/test/resources/invalid.ini")
+  val emptyFile = IniFile("src/test/resources/empty.ini")
+  val valuelessFile = IniFile("src/test/resources/novalue.ini")
 
   // Simple .ini files
   // --------------------------------------------------------------------------
@@ -161,4 +164,33 @@ class IniFileSpec extends FlatSpec with Matchers {
     val value = complexFile.right.get("autostash")("rebase") getOrElse "<None>"
     value should be ("<None>")
   }
+
+  // Invalid .ini files
+  // --------------------------------------------------------------------------
+
+  "An invalid .ini file" should "not be parseable" in {
+    invalidFile shouldBe a [Left[String, _]]
+    val msg = invalidFile.left getOrElse "<Msg>"
+    msg should be ("`NEWLINE' expected but STRING(section) found")
+  }
+
+  // Empty .ini files
+  // --------------------------------------------------------------------------
+
+  "An empty .ini file" should "not be parseable" in {
+    emptyFile shouldBe a [Left[String, _]]
+    val msg = emptyFile.left getOrElse "<Msg>"
+    msg should be ("string matching regex `[^\\[\\]\\n\\t\\r\\f =]+' expected but end of source found")
+  }
+
+  // Valueless .ini files
+  // --------------------------------------------------------------------------
+
+  /*
+  "A .ini file with a key without a value" should "not be parseable" in {
+    valuelessFile shouldBe a [Left[String, _]]
+    val msg = valuelessFile.left getOrElse "<Msg>"
+    println(msg)
+  }
+  */
 }
