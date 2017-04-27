@@ -25,9 +25,10 @@ trait IniSection {
 }
 
 private[ini] object IniSection {
-  def apply(ast: Section): IniSection = new ConcreteIniSection(ast.settings.foldLeft(Map[String, String]()) { (memo, kv) =>
-    memo + (kv.key -> kv.value)
-  })
+  def apply(ast: Section): IniSection =
+    new ConcreteIniSection(ast.settings.foldLeft(Map[String, String]()) { (memo, kv) =>
+      memo + (kv.key -> kv.value)
+    })
 }
 
 
@@ -45,31 +46,29 @@ private[ini] class ProxyIniSection extends IniSection {
 }
 
 
-class IniFile private(_path: String, _sections: Map[String, IniSection]) {
-  val path = _path
-
-  override def toString = s"IniFile(path = $path)"
+class IniFile private(_sections: Map[String, IniSection]) {
+  override def toString = s"IniFile(_sections = ${_sections})"
 
   def apply(key: String): IniSection =
     _sections get key getOrElse new ProxyIniSection()
 }
 
 object IniFile {
-  def apply(path: String): Either[String, IniFile] = apply(new File(path))
+  def apply(code: String): Either[String, IniFile] = IniProcessor(code) match {
+    case Right(sections) =>
+      val sects = sections.foldLeft(Map[String, IniSection]()) { (memo, section) =>
+        val name = section.header.name
+        val data = IniSection(section)
+        memo + (name -> data)
+      }
+      Right(new IniFile(sects))
+
+    case Left(err) =>
+      Left(err.msg)
+  }
 
   def apply(file: File): Either[String, IniFile] = if (file.exists) {
-    IniProcessor(Source.fromFile(file).mkString) match {
-      case Right(sections) =>
-        val sects = sections.foldLeft(Map[String, IniSection]()) { (memo, section) =>
-          val name = section.header.name
-          val data = IniSection(section)
-          memo + (name -> data)
-        }
-        Right(new IniFile(file.getAbsolutePath, sects))
-
-      case Left(err) =>
-        Left(err.msg)
-    }
+    apply(Source.fromFile(file).mkString)
   } else {
     Left(s"Cannot stat file: ${file.getPath}")
   }

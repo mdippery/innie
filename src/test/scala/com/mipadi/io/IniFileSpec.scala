@@ -22,36 +22,43 @@ import com.mipadi.lang.ini.IniSection
 
 
 class IniFileSpec extends FlatSpec with Matchers {
-  val iniFile = IniFile("src/test/resources/zanegort.ini")
-  val quotedFile = IniFile("src/test/resources/quoted.ini")
-  val complexFile = IniFile("src/test/resources/gitconfig.ini")
-  val invalidFile = IniFile("src/test/resources/invalid.ini")
-  val emptyFile = IniFile("src/test/resources/empty.ini")
-  val valuelessFile = IniFile("src/test/resources/novalue.ini")
+  val iniFile = IniFile(new File("src/test/resources/zanegort.ini"))
+  val quotedFile = IniFile(new File("src/test/resources/quoted.ini"))
+  val complexFile = IniFile(new File("src/test/resources/gitconfig.ini"))
+  val invalidFile = IniFile(new File("src/test/resources/invalid.ini"))
+  val emptyFile = IniFile(new File("src/test/resources/empty.ini"))
+  val valuelessFile = IniFile(new File("src/test/resources/novalue.ini"))
 
   // Simple .ini files
   // --------------------------------------------------------------------------
 
-  "A simple .ini file" should "be created from a string path" in {
-    val path = iniFile map { _.path } getOrElse "<Left>"
+  "A simple .ini file" should "be created from a string" in {
+    val source = """[database]
+                   |name = zanegort
+                   |collection = services
+                   |
+                   |[irc]
+                   |network = freenode
+                   |host = chat.freenode.net
+                   |port = 6667
+                   |nickname = zanegort
+                   |channel = #/r/webdev
+                   |    val iniFile = IniFile(source)
+                   |    iniFile shouldBe a [Right[_, IniFile]]
+                   |  }""".stripMargin
+    val iniFile = IniFile(source)
     iniFile shouldBe a [Right[_, IniFile]]
-    path.endsWith("src/test/resources/zanegort.ini") should be (true)
   }
 
   it should "be created from a File" in {
-    val f = new File("src/test/resources/zanegort.ini")
-    val iniFile = IniFile(f)
-    val path = iniFile map { _.path } getOrElse "<Left>"
     iniFile shouldBe a [Right[_, IniFile]]
-    path.endsWith("src/test/resources/zanegort.ini") should be (true)
   }
 
-  it should "not be created from an invalid string path" in {
-    val f = "src/test/resources/nofile.ini"
-    val iniFile = IniFile(f)
+  it should "not be created from an invalid string" in {
+    val iniFile = IniFile("aaaaa")
     val msg = iniFile.left getOrElse "<Right>"
     iniFile shouldBe a [Left[String, _]]
-    msg should be (s"Cannot stat file: $f")
+    println("`LBRACE' expected but STRING(aaaaa) found")
   }
 
   it should "not be created from an invalid File" in {
@@ -124,32 +131,18 @@ class IniFileSpec extends FlatSpec with Matchers {
   // Complex .ini files
   // --------------------------------------------------------------------------
 
-  "A complex .ini file" should "be created from a string path" in {
-    val complexFile = IniFile("src/test/resources/gitconfig.ini")
-    val path = complexFile map { _.path } getOrElse "<Left>"
-    path.endsWith("src/test/resources/gitconfig.ini") should be (true)
-  }
-
-  it should "be created from a File" in {
-    val f = new File("src/test/resources/gitconfig.ini")
-    val complexFile = IniFile(f)
-    val path = complexFile map { _.path } getOrElse "<Left>"
-    path.endsWith("src/test/resources/gitconfig.ini") should be (true)
+  "A complex .ini file" should "be created from a File" in {
+    complexFile shouldBe a [Right[_, IniFile]]
   }
 
   ignore should "return a section if a given key is valid" in {
     val sections = Set("user", "core", "apply", "color", "diff", "diff.json",
                        "instaweb", "interactive", "fetch", "pull", "push",
                        "rebase", "rerere", "pager", "alias", "include")
-    complexFile match {
-      case Right(f) =>
-        sections.foreach { key =>
-          val section = f(key)
-          section should not be (None)
-        }
-
-      case x =>
-        fail(s"Not a Right: $x")
+    val f = complexFile.right.get
+    sections.foreach { key =>
+      val section = f(key)
+      section should not be (None)
     }
   }
 
