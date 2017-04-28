@@ -129,7 +129,7 @@ class IniFileSpec extends FlatSpec with Matchers {
   // Complex .ini files
   // --------------------------------------------------------------------------
 
-  ignore /*"A complex .ini file"*/ should "be created from a complex File" in {
+  "A complex .ini file" should "be created from a File" in {
     complexFile shouldBe a [Right[_, IniFile]]
   }
 
@@ -144,12 +144,12 @@ class IniFileSpec extends FlatSpec with Matchers {
     }
   }
 
-  ignore should "not return a value if a key in a section does not exist" in {
+  it should "not return a value if a key in a section does not exist" in {
     val value = complexFile.right.get("color")("pull") getOrElse "<None>"
     value should be ("<None>")
   }
 
-  ignore should "not return a value if a given section does not exist" in {
+  it should "not return a value if a given section does not exist" in {
     val value = complexFile.right.get("autostash")("rebase") getOrElse "<None>"
     value should be ("<None>")
   }

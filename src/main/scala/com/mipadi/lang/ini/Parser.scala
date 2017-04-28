@@ -113,12 +113,16 @@ object IniParser extends Parsers {
     word ^^ { case Word(s) => Key(s) }
 
   def value: Parser[Value] =
-    rep1(anything | SPACE) ^^ { case chars => Value(chars.filter { ch =>
+    rep1(anything | SPACE | DQUOTE | RBRACE | LBRACE | EQUALS) ^^ { case chars => Value(chars.foldLeft("") { (memo, ch) =>
       ch match {
-        case SPACE => false
-        case _     => true
+        case SPACE  => memo
+        case EQUALS => memo.trim + "="
+        case DQUOTE => memo.trim + "\""
+        case LBRACE => memo.trim + "["
+        case RBRACE => memo.trim + "]"
+        case _      => memo + s"$ch "
       }
-    }.mkString(" "))}
+    }.trim)}
 
   def document: Parser[List[Section]] =
     phrase(rep1(section)) ^^ { case sections => sections }
