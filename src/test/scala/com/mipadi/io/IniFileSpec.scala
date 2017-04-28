@@ -133,14 +133,111 @@ class IniFileSpec extends FlatSpec with Matchers {
     complexFile shouldBe a [Right[_, IniFile]]
   }
 
-  it should "return a section if a given key is valid" in {
-    val sections = Set("user", "core", "apply", "color", "diff", "diff.json",
-                       "instaweb", "interactive", "fetch", "pull", "push",
-                       "rebase", "rerere", "pager", "alias", "include")
-    val f = complexFile.right.get
-    sections.foreach { key =>
-      val section = f(key)
-      section should not be (None)
+  it should "return a value for a given key if they key exists" in {
+    val options = Map(
+      "user" -> Map(
+        "name" -> "Michael Dippery",
+        "email" -> "michael@monkey-robot.com"
+      ),
+      "core" -> Map(
+        "excludesfile" -> "~/.config/git/ignore"
+      ),
+      "apply" -> Map(
+        "whitespace" -> "nowarn"
+      ),
+      "color" -> Map(
+        "branch" -> "auto",
+        "diff" -> "auto",
+        "interactive" -> "auto",
+        "status" -> "auto"
+      ),
+      "diff" -> Map(
+        "renames" -> "copies"
+      ),
+      "diff.json" -> Map(
+        "textconv" -> "jq '.'"
+      ),
+      "instaweb" -> Map(
+        "httpd" -> "webrick"
+      ),
+      "interactive" -> Map(
+        "singlekey" -> "true"
+      ),
+      "fetch" -> Map(
+        "prune" -> "true"
+      ),
+      "pull" -> Map(
+        "rebase" -> "true"
+      ),
+      "push" -> Map(
+        "default" -> "simple"
+      ),
+      "rebase" -> Map(
+        "autostash" -> "true"
+      ),
+      "rerere" -> Map(
+        "enabled" -> "true"
+      ),
+      "pager" -> Map(
+        "incoming" -> "false",
+        "outgoing" -> "false",
+        "who" -> "false"
+      ),
+      "alias" -> Map(
+        "br" -> "branch",
+        "ci" -> "commit",
+        "co" -> "checkout",
+        "cp" -> "cherry-pick",
+        "ds" -> "!git --no-pager diff --stat -M -w",
+        "ga" -> "log --graph --oneline --decorate --all",
+        "gr" -> "log --graph --oneline --decorate",
+        "ld" -> "log --pretty=format:\"%C(yellow)%h\\\\ %Cgreen%ad%Creset\\\\ %s\\\\ %Cblue[%an]\" --date=short",
+        "lf" -> "log --pretty=format:\"%C(yellow)%h\\\\ %Cgreen%ad%Creset\\\\ %s\\\\ %Cblue[%an]\" --date=relative --name-status",
+        "ls" -> "log --pretty=format:\"%C(yellow)%h\\\\ %Cgreen%ad%Creset\\\\ %s\\\\ %Cblue[%an]\" --date=relative",
+        "ol" -> "log --oneline --decorate",
+        "rb" -> "rebase",
+        "ri" -> "rebase -i",
+        "rp" -> "\"!f() { for remote in $(git remote); do git remote prune $remote; done; }; f\"",
+        "rv" -> "revert",
+        "ru" -> "remote update",
+        "sb" -> "status -sb",
+        "st" -> "status",
+        "blc" -> "blame-color",
+        "alias" -> "\"!f() { git config --get-regexp alias | cut -c 7- | sed \\\"s/ /$(echo 2B | xxd -r -p)/\\\" | column -t -s $(echo 2B | xxd -r -p); }; f\"",
+        "authors" -> "!sh -c 'git log --format=\"%aN\" | sort -k 2 -u'",
+        "changed" -> "diff ORIG_HEAD..",
+        "deleted" -> "log --diff-filter=D --summary",
+        "edits" -> "diff --color-words",
+        "fix" -> "commit -a --amend",
+        "hide" -> "update-index --assume-unchanged",
+        "incoming" -> "log --pretty=format:\"%C(yellow)%h\\\\ %Cgreen%ad%Creset\\\\ %s\\\\ %Cblue[%an]%n\" --date=relative ORIG_HEAD..",
+        "info" -> "config --list",
+        "nuke" -> "!sh -c 'git reset --hard HEAD~$1' -",
+        "outgoing" -> "log --pretty=format:\"%C(yellow)%h\\\\ %Cgreen%ad%Creset\\\\ %s\\\\ %Cblue[%an]%n\" --date=relative @{u}..",
+        "showtag" -> "!sh -c 'git rev-parse $1 | xargs git cat-file -p' -",
+        "staged" -> "diff --cached",
+        "stashed" -> "!git --no-pager stash list",
+        "tags" -> "tag -n1 -l",
+        "trash" -> "!git reset HEAD . && git checkout -- . && echo 'Undid all changes'",
+        "type" -> "cat-file -t",
+        "undo" -> "reset HEAD .",
+        "who" -> "shortlog -sn --no-merges",
+        "whoami" -> "!git config --get user.name && git config --get user.email"
+      ),
+      "include" -> Map(
+        "path" -> "~/.gitconfig.user"
+      )
+    )
+    options.foreach { (kv) =>
+      val sectionName = kv._1
+      val config = kv._2
+      val section = complexFile.right.get(sectionName)
+      config.foreach { (kv) =>
+        val option = kv._1
+        val value = kv._2
+        val actualValue = section(option) getOrElse "<None>"
+        actualValue should be (value)
+      }
     }
   }
 
@@ -178,6 +275,6 @@ class IniFileSpec extends FlatSpec with Matchers {
   "A .ini file with a key without a value" should "not be parseable" in {
     valuelessFile shouldBe a [Left[String, _]]
     val msg = valuelessFile.left getOrElse "<Msg>"
-    println(msg)
+    msg should be ("`EQUALS' expected but NEWLINE found")
   }
 }

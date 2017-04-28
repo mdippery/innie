@@ -115,12 +115,12 @@ private[ini] object IniParser extends Parsers {
   def value: Parser[Value] =
     rep1(anything | SPACE | DQUOTE | RBRACE | LBRACE | EQUALS) ^^ { case chars => Value(chars.foldLeft("") { (memo, ch) =>
       ch match {
-        case SPACE  => memo
-        case EQUALS => memo.trim + "="
-        case DQUOTE => memo.trim + "\""
-        case LBRACE => memo.trim + "["
-        case RBRACE => memo.trim + "]"
-        case _      => memo + s"$ch "
+        case SPACE  => memo + " "
+        case EQUALS => memo + "="
+        case DQUOTE => memo + "\""
+        case LBRACE => memo + "["
+        case RBRACE => memo + "]"
+        case _      => memo + s"$ch"
       }
     }.trim)}
 
