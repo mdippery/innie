@@ -49,7 +49,7 @@ private[ini] case class LexerError(msg: String) extends IniParseError
 private[ini] case class ParserError(msg: String) extends IniParseError
 
 
-object IniLexer extends RegexParsers {
+private[ini] object IniLexer extends RegexParsers {
   override def skipWhitespace = true
   override val whiteSpace = "[\t\r]+".r
 
@@ -84,7 +84,7 @@ private[ini] class IniTokenReader(tokens: Seq[Token]) extends Reader[Token] {
 }
 
 
-object IniParser extends Parsers {
+private[ini] object IniParser extends Parsers {
   override type Elem = Token
 
   def letter: Parser[LETTER] =
