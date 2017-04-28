@@ -133,7 +133,7 @@ class IniFileSpec extends FlatSpec with Matchers {
     complexFile shouldBe a [Right[_, IniFile]]
   }
 
-  ignore should "return a section if a given key is valid" in {
+  it should "return a section if a given key is valid" in {
     val sections = Set("user", "core", "apply", "color", "diff", "diff.json",
                        "instaweb", "interactive", "fetch", "pull", "push",
                        "rebase", "rerere", "pager", "alias", "include")
@@ -175,7 +175,7 @@ class IniFileSpec extends FlatSpec with Matchers {
   // Valueless .ini files
   // --------------------------------------------------------------------------
 
-  ignore /*"A .ini file with a key without a value"*/ should "not be parseable when it has a key with no value" in {
+  "A .ini file with a key without a value" should "not be parseable" in {
     valuelessFile shouldBe a [Left[String, _]]
     val msg = valuelessFile.left getOrElse "<Msg>"
     println(msg)
