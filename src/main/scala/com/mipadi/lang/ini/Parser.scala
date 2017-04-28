@@ -25,16 +25,23 @@ import scala.util.parsing.input.{NoPosition, Position, Reader}
 private[ini] sealed trait Token
 private[ini] case object LBRACE extends Token
 private[ini] case object RBRACE extends Token
-private[ini] case object EQUALS extends Token
+private[ini] case object SPACE extends Token
+private[ini] case object DQUOTE extends Token
 private[ini] case object NEWLINE extends Token
-private[ini] case class QUOTED(s: String) extends Token
-private[ini] case class STRING(s: String) extends Token
+private[ini] case object EQUALS extends Token
+private[ini] case class LETTER(s: String) extends Token { override def toString = s }
+private[ini] case class NUMBER(s: String) extends Token { override def toString = s }
+private[ini] case class ANY(s: String) extends Token { override def toString = s }
 
 
 private[ini] sealed trait Ast
 private[ini] case class Section(header: SectionHeader, settings: Seq[KeyValuePair]) extends Ast
 private[ini] case class SectionHeader(name: String) extends Ast
-private[ini] case class KeyValuePair(key: String, value: String) extends Ast
+private[ini] case class Word(s: String) extends Ast { override def toString = s }
+private[ini] case class Quoted(s: String) extends Ast { override def toString = s }
+private[ini] case class Key(s: String) extends Ast
+private[ini] case class Value(s: String) extends Ast
+private[ini] case class KeyValuePair(key: Key, value: Value) extends Ast
 
 
 private[ini] trait IniParseError { def msg: String }
@@ -42,31 +49,30 @@ private[ini] case class LexerError(msg: String) extends IniParseError
 private[ini] case class ParserError(msg: String) extends IniParseError
 
 
-private[ini] object IniLexer extends RegexParsers {
-  override val whiteSpace = "[ \t\r\f]+".r
-
+object IniLexer extends RegexParsers {
   override def skipWhitespace = true
+  override val whiteSpace = "[\t\r]+".r
 
-  def lbrace  = "\\[".r ^^ { _ => LBRACE }
-  def rbrace  = "\\]".r ^^ { _ => RBRACE }
-  def equals  = "=".r   ^^ { _ => EQUALS }
-  def newline = "\\n".r ^^ { _ => NEWLINE }
-
-  def quoted: Parser[QUOTED] =
-    "\".+\"".r ^^ { str => QUOTED(str.replace("\"", "")) }
-
-  def string: Parser[STRING] =
-    "[^\\[\\]\\n\\t\\r\\f =]+".r ^^ { str => STRING(str) }
+  def lbrace   = "\\[".r      ^^ { _ => LBRACE }
+  def rbrace   = "\\]".r      ^^ { _ => RBRACE }
+  def dquote   = "\"".r       ^^ { _ => DQUOTE }
+  def equals   = " *= *".r    ^^ { _ => EQUALS }
+  def space    = " +".r       ^^ { _ => SPACE }
+  def newline  = "\\n+".r     ^^ { _ => NEWLINE }
+  def letter   = "[a-zA-Z]".r ^^ { s => LETTER(s) }
+  def number   = "[0-9]".r    ^^ { s => NUMBER(s) }
+  def any      = ".".r        ^^ { s => ANY(s) }
 
   def tokens: Parser[List[Token]] =
-    phrase(rep1(lbrace | rbrace | equals | newline | quoted | string)) ^^ { rawTokens =>
+    phrase(rep1(lbrace | rbrace | dquote | equals | space | newline | letter | number | any)) ^^ { rawTokens =>
       rawTokens
     }
 
-  def apply(code: String): Either[LexerError, List[Token]] = parse(tokens, code) match {
-    case NoSuccess(msg, next) => Left(LexerError(msg))
-    case Success(res, next)   => Right(res)
-  }
+  def apply(code: String): Either[LexerError, List[Token]] =
+    parse(tokens, code) match {
+      case NoSuccess(msg, next)  => Left(LexerError(msg))
+      case Success(result, next) => Right(result)
+    }
 }
 
 
@@ -78,45 +84,72 @@ private[ini] class IniTokenReader(tokens: Seq[Token]) extends Reader[Token] {
 }
 
 
-private[ini] object IniParser extends Parsers {
+object IniParser extends Parsers {
   override type Elem = Token
 
-  private def string: Parser[STRING] =
-    accept("string", { case str @ STRING(s) => str })
+  def letter: Parser[LETTER] =
+    accept("letter", { case l @ LETTER(_) => l })
 
-  private def quoted: Parser[QUOTED] =
-    accept("quoted", { case str @ QUOTED(s) => str })
+  def number: Parser[NUMBER] =
+    accept("number", { case n @ NUMBER(_) => n })
+
+  def any: Parser[ANY] =
+    accept("any", { case a @ ANY(_) => a })
+
+  def word: Parser[Word] =
+    rep1(letter) ^^ {
+      case letters => Word(letters.mkString(""))
+    }
+
+  def quoted: Parser[Quoted] =
+    (DQUOTE ~ rep1(letter | number) ~ DQUOTE) ^^ {
+      case _ ~ chars ~ _ => Quoted(chars.mkString(""))
+    }
+
+  def anything: Parser[Word] =
+    rep1(letter | number | any) ^^ { case chars => Word(chars.mkString("")) }
+
+  def key: Parser[Key] =
+    word ^^ { case Word(s) => Key(s) }
+
+  def value: Parser[Value] =
+    rep1(anything | SPACE) ^^ { case chars => Value(chars.filter { ch =>
+      ch match {
+        case SPACE => false
+        case _     => true
+      }
+    }.mkString(" "))}
 
   def document: Parser[List[Section]] =
-    rep1(section) ^^ { case blocks => blocks }
+    phrase(rep1(section)) ^^ { case sections => sections }
 
   def section: Parser[Section] =
-    (sectionHeader ~ rep(keyValuePair)) ^^ {
-      case h ~ pairs => Section(h, pairs)
+    (sectionHeader ~ rep1(keyValuePair)) ^^ {
+      case h ~ ps => Section(h, ps)
     }
 
   def sectionHeader: Parser[SectionHeader] =
-    (LBRACE ~ string ~ opt(quoted) ~ RBRACE ~ rep1(NEWLINE)) ^^ {
-      case _ ~ STRING(s1) ~ Some(QUOTED(s2)) ~ _ ~ _ => SectionHeader(s"$s1.$s2")
-      case _ ~ STRING(s) ~ None ~ _ ~ _              => SectionHeader(s)
+    (LBRACE ~ word ~ opt(SPACE ~ quoted) ~ RBRACE ~ NEWLINE) ^^ {
+      case _ ~ Word(s1) ~ Some(_ ~ Quoted(s2)) ~ _ ~ _ => SectionHeader(s"$s1.$s2")
+      case _ ~ Word(s) ~ None ~ _ ~ _                  => SectionHeader(s)
     }
 
   def keyValuePair: Parser[KeyValuePair] =
-    (string ~ EQUALS ~ string ~ rep1(NEWLINE)) ^^ {
-      case STRING(k) ~ _ ~ STRING(v) ~ _ => KeyValuePair(k, v)
+    (opt(SPACE) ~ key ~ EQUALS ~ value ~ NEWLINE) ^^ {
+      case _ ~ (k @ Key(_)) ~ _ ~ (v @ Value(_)) ~ _ => KeyValuePair(k, v)
     }
 
   def apply(tokens: Seq[Token]): Either[ParserError, List[Section]] = {
     val reader = new IniTokenReader(tokens)
     document(reader) match {
-      case NoSuccess(msg, next) => Left(ParserError(msg))
-      case Success(res, next)   => Right(res)
+      case NoSuccess(msg, next)  => Left(ParserError(msg))
+      case Success(result, next) => Right(result)
     }
   }
 }
 
 
-private[ini] object IniProcessor {
+object IniProcessor {
   def apply(code: String): Either[IniParseError, List[Section]] = {
     for {
       tokens <- IniLexer(code).right

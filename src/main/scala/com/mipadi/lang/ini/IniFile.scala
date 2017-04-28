@@ -27,7 +27,7 @@ trait IniSection {
 private[ini] object IniSection {
   def apply(ast: Section): IniSection =
     new ConcreteIniSection(ast.settings.foldLeft(Map[String, String]()) { (memo, kv) =>
-      memo + (kv.key -> kv.value)
+      memo + (kv.key.s -> kv.value.s)
     })
 }
 
