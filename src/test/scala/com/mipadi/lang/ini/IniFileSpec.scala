@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package com.mipadi.io
+package com.mipadi.lang.ini
 
 import java.io.File
 import org.scalatest._
-import com.mipadi.lang.ini.IniSection
 
 
 class IniFileSpec extends FlatSpec with Matchers {
