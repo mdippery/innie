@@ -20,7 +20,17 @@ import java.io.File
 import scala.io.Source
 
 
+/** Represents a single section of a `.ini` file. */
 trait IniSection {
+
+  /** Returns the value for a given key in this INI section.
+   *
+   *  @param key
+   *    The key
+   *  @return
+   *    The value for `key`, wrapped in an `Option`, or `None` if the key
+   *    does not exist in this section.
+   */
   def apply(key: String): Option[String]
 }
 
@@ -46,14 +56,46 @@ private[ini] class ProxyIniSection extends IniSection {
 }
 
 
+/** Represents a `.ini` file. */
 class IniFile private(_sections: Map[String, IniSection]) {
   override def toString = s"IniFile(_sections = ${_sections})"
 
+  /** Retrieves a named section of a `.ini` file.
+   *
+   *  @param key
+   *    The name of the section
+   *  @return
+   *    The section for the given key
+   */
   def apply(key: String): IniSection =
     _sections get key getOrElse new ProxyIniSection()
 }
 
+/** Builds an `[[com.mipadi.lang.ini.IniFile IniFile]]` object from the given
+ *  source code or `File`.
+ *
+ *  Typically a new `[[com.mipadi.lang.ini.IniFile IniFile]]` object is
+ *  created from a `java.io.File`:
+ *
+ *  {{{
+ *  import java.io.File
+ *  import com.mipadi.lang.ini.IniFile
+ *  val f = new File("/path/to/file.ini")
+ *  val ini = IniFile(f)
+ *  }}}
+ */
 object IniFile {
+
+  /** Creates a new `[[com.mipadi.lang.ini.IniFile IniFile]]` from the given
+   *  source code (as a string).
+   *
+   *  @param code
+   *    `.ini` source code
+   *  @return
+   *    - A `Right` containing the processed `.ini` file; or
+   *    - A `Left` containing an error message if the INI source is not
+   *      valid.
+   */
   def apply(code: String): Either[String, IniFile] = IniProcessor(code) match {
     case Right(sections) =>
       val sects = sections.foldLeft(Map[String, IniSection]()) { (memo, section) =>
@@ -67,6 +109,16 @@ object IniFile {
       Left(err.msg)
   }
 
+  /** Creates a new `[[com.mipadi.lang.ini.IniFile IniFile]]` from the given
+   *  file object.
+   *
+   *  @param file
+   *    The `.ini` file
+   *  @return
+   *    - A `Right` containing the processed `.ini` file; or
+   *    - A `Left` containing an error message if the file cannot be
+   *      processed.
+   */
   def apply(file: File): Either[String, IniFile] = if (file.exists) {
     apply(Source.fromFile(file).mkString)
   } else {
