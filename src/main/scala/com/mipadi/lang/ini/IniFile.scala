@@ -36,9 +36,7 @@ trait IniSection {
 
 private[ini] object IniSection {
   def apply(ast: Section): IniSection =
-    new ConcreteIniSection(ast.settings.foldLeft(Map[String, String]()) { (memo, kv) =>
-      memo + (kv.key.s -> kv.value.s)
-    })
+    new ConcreteIniSection(ast.settings.map(kv => (kv.key.s, kv.value.s)).toMap)
 }
 
 
@@ -98,12 +96,7 @@ object IniFile {
    */
   def apply(code: String): Either[String, IniFile] = IniProcessor(code) match {
     case Right(sections) =>
-      val sects = sections.foldLeft(Map[String, IniSection]()) { (memo, section) =>
-        val name = section.header.name
-        val data = IniSection(section)
-        memo + (name -> data)
-      }
-      Right(new IniFile(sects))
+      Right(new IniFile(sections.map(s => (s.header.name, IniSection(s))).toMap))
 
     case Left(err) =>
       Left(err.msg)
