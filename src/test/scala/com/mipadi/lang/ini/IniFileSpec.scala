@@ -21,12 +21,15 @@ import org.scalatest._
 
 
 class IniFileSpec extends FlatSpec with Matchers {
-  val iniFile = IniFile(new File("src/test/resources/zanegort.ini"))
-  val quotedFile = IniFile(new File("src/test/resources/quoted.ini"))
-  val complexFile = IniFile(new File("src/test/resources/gitconfig.ini"))
-  val invalidFile = IniFile(new File("src/test/resources/invalid.ini"))
-  val emptyFile = IniFile(new File("src/test/resources/empty.ini"))
-  val valuelessFile = IniFile(new File("src/test/resources/novalue.ini"))
+  val iniFile = IniFile(getResource("/zanegort.ini"))
+  val quotedFile = IniFile(getResource("/quoted.ini"))
+  val complexFile = IniFile(getResource("/gitconfig.ini"))
+  val invalidFile = IniFile(getResource("/invalid.ini"))
+  val emptyFile = IniFile(getResource("/empty.ini"))
+  val valuelessFile = IniFile(getResource("/novalue.ini"))
+
+  private def getResource(resource: String): File =
+    new File(getClass.getResource(resource).getPath)
 
   // Simple .ini files
   // --------------------------------------------------------------------------
