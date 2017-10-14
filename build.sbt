@@ -19,17 +19,27 @@ lazy val root = (project in file("."))
     name         := "innie",
     organization := "com.mipadi",
     licenses     := Seq(("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0"))),
-    version      := "0.1.0",
+    version      := "0.1.1-SNAPSHOT",
     scalaVersion := "2.12.3",
 
-    crossScalaVersions := Seq("2.12.3", "2.11.11"),
+    crossScalaVersions := Seq("2.12.3", "2.11.11", "2.10.6"),
 
     scalacOptions ++= Seq(
       "-deprecation"
     ),
 
+    libraryDependencies := {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, scalaMajor)) if scalaMajor > 10 =>
+          libraryDependencies.value ++ Seq(
+            "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
+          )
+        case _ =>
+          libraryDependencies.value
+      }
+    },
+
     libraryDependencies ++= Seq(
-      "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
       "org.scalatest" %% "scalatest" % "3.0.1" % Test
     )
   )
