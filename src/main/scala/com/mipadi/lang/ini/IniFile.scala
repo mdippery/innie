@@ -55,8 +55,7 @@ private[ini] class ProxyIniSection extends IniSection {
 
 
 /** Represents a `.ini` file. */
-class IniFile private(_sections: Map[String, IniSection]) {
-  override def toString = s"IniFile(_sections = ${_sections})"
+trait IniFile {
 
   /** Retrieves a named section of a `.ini` file.
    *
@@ -65,8 +64,7 @@ class IniFile private(_sections: Map[String, IniSection]) {
    *  @return
    *    The section for the given key
    */
-  def apply(key: String): IniSection =
-    _sections get key getOrElse new ProxyIniSection()
+  def apply(key: String): IniSection
 }
 
 /** Builds an `[[com.mipadi.lang.ini.IniFile IniFile]]` object from the given
@@ -96,7 +94,7 @@ object IniFile {
    */
   def apply(code: String): Either[String, IniFile] = IniProcessor(code) match {
     case Right(sections) =>
-      Right(new IniFile(sections.map(s => (s.header.name, IniSection(s))).toMap))
+      Right(new IniFileImpl(sections.map(s => (s.header.name, IniSection(s))).toMap))
 
     case Left(err) =>
       Left(err.msg)
@@ -117,4 +115,12 @@ object IniFile {
   } else {
     Left(s"Cannot stat file: ${file.getPath}")
   }
+}
+
+
+private class IniFileImpl(_sections: Map[String, IniSection]) extends IniFile {
+  override def toString = s"IniFile(_sections = ${_sections})"
+
+  override def apply(key: String): IniSection =
+    _sections get key getOrElse new ProxyIniSection()
 }
