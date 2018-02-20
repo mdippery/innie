@@ -40,6 +40,6 @@ lazy val root = (project in file("."))
     },
 
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "3.0.1" % Test
+      "org.scalatest" %% "scalatest" % "3.0.4" % Test
     )
   )
