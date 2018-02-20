@@ -32,7 +32,7 @@ lazy val root = (project in file("."))
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, scalaMajor)) if scalaMajor > 10 =>
           libraryDependencies.value ++ Seq(
-            "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.0",
+            "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
           )
         case _ =>
           libraryDependencies.value
