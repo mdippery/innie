@@ -20,9 +20,9 @@ lazy val root = (project in file("."))
     organization := "com.mipadi",
     licenses     := Seq(("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0"))),
     version      := "0.1.1-SNAPSHOT",
-    scalaVersion := "2.12.3",
+    scalaVersion := "2.12.4",
 
-    crossScalaVersions := Seq("2.12.3", "2.11.11", "2.10.6"),
+    crossScalaVersions := Seq("2.12.4", "2.11.11", "2.10.6"),
 
     scalacOptions ++= Seq(
       "-deprecation"
