@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Michael Dippery <michael@monkey-robot.com>
+ * Copyright (C) 2019 Michael Dippery <michael@monkey-robot.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ lazy val root = (project in file("."))
     organization := "com.mipadi",
     licenses     := Seq(("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0"))),
     version      := "0.1.1-SNAPSHOT",
-    scalaVersion := "2.12.4",
+    scalaVersion := "2.13.0",
 
-    crossScalaVersions := Seq("2.12.4", "2.11.11", "2.10.6"),
+    crossScalaVersions := Seq("2.13.0", "2.12.8"),
 
     scalacOptions ++= Seq(
       "-deprecation"
@@ -32,7 +32,7 @@ lazy val root = (project in file("."))
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, scalaMajor)) if scalaMajor > 10 =>
           libraryDependencies.value ++ Seq(
-            "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
+            "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2",
           )
         case _ =>
           libraryDependencies.value
@@ -40,6 +40,6 @@ lazy val root = (project in file("."))
     },
 
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "3.0.4" % Test
+      "org.scalatest" %% "scalatest" % "3.0.8" % Test
     )
   )

@@ -156,8 +156,8 @@ private[ini] object IniParser extends Parsers {
 private[ini] object IniProcessor {
   def apply(code: String): Either[IniParseError, List[Section]] = {
     for {
-      tokens <- IniLexer(code).right
-      ast <- IniParser(tokens).right
+      tokens <- IniLexer(code)
+      ast <- IniParser(tokens)
     } yield ast
   }
 }

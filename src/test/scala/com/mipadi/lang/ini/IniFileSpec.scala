@@ -17,7 +17,18 @@
 package com.mipadi.lang.ini
 
 import java.io.File
+import scala.util.Properties
 import org.scalatest._
+
+
+class EmptySection extends IniSection {
+  def apply(key: String): Option[String] = None
+}
+
+
+class EmptyFile extends IniFile {
+  def apply(key: String): IniSection = new EmptySection
+}
 
 
 class IniFileSpec extends FlatSpec with Matchers {
@@ -56,9 +67,9 @@ class IniFileSpec extends FlatSpec with Matchers {
 
   it should "not be created from an invalid string" in {
     val iniFile = IniFile("aaaaa")
-    val msg = iniFile.left getOrElse "<Right>"
+    val msg = iniFile.left getOrElse "<Right>" replaceAllLiterally("`", "'")
     iniFile shouldBe a [Left[String, _]]
-    msg should be ("`LBRACE' expected but a found")
+    msg should be ("'LBRACE' expected but a found")
   }
 
   it should "not be created from an invalid File" in {
@@ -87,7 +98,7 @@ class IniFileSpec extends FlatSpec with Matchers {
     options.foreach { (kv) =>
       val sectionName = kv._1
       val config = kv._2
-      val section = iniFile.right.get(sectionName)
+      val section = iniFile.getOrElse(new EmptyFile)(sectionName)
       config.foreach { (kv) =>
         val option = kv._1
         val value = kv._2
@@ -98,12 +109,16 @@ class IniFileSpec extends FlatSpec with Matchers {
   }
 
   it should "not return a value for a given key if the key does not exist" in {
-    val value = iniFile.right.get("database")("table") getOrElse "<None>"
+    val file = iniFile getOrElse new EmptyFile
+    val sect = file("database")
+    val value = sect("table") getOrElse "<None>"
     value should be ("<None>")
   }
 
   it should "not return a value for a given key if the section does not exist" in {
-    val value = iniFile.right.get("nosection")("name") getOrElse "<None>"
+    val file = iniFile getOrElse new EmptyFile
+    val sect = file("nosection")
+    val value = sect("name") getOrElse "<None>"
     value should be ("<None>")
   }
 
@@ -111,19 +126,19 @@ class IniFileSpec extends FlatSpec with Matchers {
   // --------------------------------------------------------------------------
 
   "A quoted .ini file" should "return a value from a quoted section if the key is valid" in {
-    val file = quotedFile.right.get
+    val file = quotedFile getOrElse new EmptyFile
     val value = file("section.quoted")("key") getOrElse "<None>"
     value should be ("value")
   }
 
   it should "not return a quoted section if the section does not exist" in {
-    val file = quotedFile.right.get
+    val file = quotedFile getOrElse new EmptyFile
     val value = file("other.section")("key") getOrElse "<None>"
     value should be ("<None>")
   }
 
   it should "not return a value in a quote section if the key does not exist" in {
-    val file = quotedFile.right.get
+    val file = quotedFile getOrElse new EmptyFile
     val value = file("section.quoted")("otherkey") getOrElse "<None>"
     value should be ("<None>")
   }
@@ -233,7 +248,7 @@ class IniFileSpec extends FlatSpec with Matchers {
     options.foreach { (kv) =>
       val sectionName = kv._1
       val config = kv._2
-      val section = complexFile.right.get(sectionName)
+      val section = complexFile.getOrElse(new EmptyFile)(sectionName)
       config.foreach { (kv) =>
         val option = kv._1
         val value = kv._2
@@ -244,12 +259,12 @@ class IniFileSpec extends FlatSpec with Matchers {
   }
 
   it should "not return a value if a key in a section does not exist" in {
-    val value = complexFile.right.get("color")("pull") getOrElse "<None>"
+    val value = complexFile.getOrElse(new EmptyFile)("color")("pull") getOrElse "<None>"
     value should be ("<None>")
   }
 
   it should "not return a value if a given section does not exist" in {
-    val value = complexFile.right.get("autostash")("rebase") getOrElse "<None>"
+    val value = complexFile.getOrElse(new EmptyFile)("autostash")("rebase") getOrElse "<None>"
     value should be ("<None>")
   }
 
@@ -258,8 +273,8 @@ class IniFileSpec extends FlatSpec with Matchers {
 
   "An invalid .ini file" should "not be parseable" in {
     invalidFile shouldBe a [Left[String, _]]
-    val msg = invalidFile.left getOrElse "<Msg>"
-    msg should be ("`NEWLINE' expected but s found")
+    val msg = invalidFile.left getOrElse "<Msg>" replaceAllLiterally("`", "'")
+    msg should be ("'NEWLINE' expected but s found")
   }
 
   // Empty .ini files
@@ -267,8 +282,8 @@ class IniFileSpec extends FlatSpec with Matchers {
 
   "An empty .ini file" should "not be parseable" in {
     emptyFile shouldBe a [Left[String, _]]
-    val msg = emptyFile.left getOrElse "<Msg>"
-    msg should be ("string matching regex `.' expected but end of source found")
+    val msg = emptyFile.left getOrElse "<Msg>" replaceAllLiterally("`", "'")
+    msg should be ("string matching regex '.' expected but end of source found")
   }
 
   // Valueless .ini files
@@ -276,7 +291,7 @@ class IniFileSpec extends FlatSpec with Matchers {
 
   "A .ini file with a key without a value" should "not be parseable" in {
     valuelessFile shouldBe a [Left[String, _]]
-    val msg = valuelessFile.left getOrElse "<Msg>"
-    msg should be ("`EQUALS' expected but NEWLINE found")
+    val msg = valuelessFile.left getOrElse "<Msg>" replaceAllLiterally("`", "'")
+    msg should be ("'EQUALS' expected but NEWLINE found")
   }
 }
